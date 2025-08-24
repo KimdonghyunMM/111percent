@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4894073909750580099}
   - component: {fileID: 2211065979926223875}
   - component: {fileID: 6843047736969957167}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Anim
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 2697149907314977622}
   - component: {fileID: 5772235222920408596}
   - component: {fileID: 8322570067219574324}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Unit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -242,7 +242,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4814417388763650969}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Muzzle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -273,7 +273,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 821221431553525348}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HitTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}

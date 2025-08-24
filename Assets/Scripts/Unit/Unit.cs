@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using Spine.Unity;
 using static UnityEngine.GraphicsBuffer;
 using UnityEngine.Events;
+using Unity.VisualScripting;
 
 public enum STATE
 {
@@ -19,10 +20,11 @@ public enum STATE
 public abstract class Unit : MonoBehaviour
 {
     [SerializeField] protected SkeletonAnimation spineAnim;
-    [SerializeField] protected Transform target;
+    [SerializeField] protected Unit target;
     [SerializeField] private Transform muzzle;
     [SerializeField] private BoxCollider2D myFloor;
 
+    protected COMMON.UserData data;
     protected float unitSpeed;
     protected ReactiveProperty<STATE> stateProperty = new ReactiveProperty<STATE>();
     protected Rigidbody2D rigidBody;
@@ -31,6 +33,8 @@ public abstract class Unit : MonoBehaviour
     protected CancellationTokenSource stateCts;
 
     public UnityAction leftLimitAction, rightLimitAction;
+    public STATE currentState => stateProperty.Value;
+    public Transform hitPoint;
 
     protected virtual void Awake()
     {
@@ -49,13 +53,14 @@ public abstract class Unit : MonoBehaviour
 
     public void ChangeState(STATE state)
     {
-        stateProperty.Value = state;
+        if (currentState == STATE.DEAD)
+            return;
+
+        ForcedChangeState(state);
     }
 
-    private void StateChangeCallBack(STATE state)
-    {
-        ChangeStateAsync(state).Forget();
-    }
+    public void ForcedChangeState(STATE state) => stateProperty.Value = state;
+    private void StateChangeCallBack(STATE state) => ChangeStateAsync(state).Forget();
 
     private async UniTask ChangeStateAsync(STATE state)
     {
@@ -88,18 +93,23 @@ public abstract class Unit : MonoBehaviour
     protected virtual async UniTask AttackAsync()
     {
         spineAnim.AnimationState.SetAnimation(0, "sword_attack", true);
+        if (target.currentState == STATE.DEAD)
+            ChangeState(STATE.IDLE);
     }
     protected virtual async UniTask MoveAsync()
     {
         spineAnim.AnimationState.SetAnimation(0, "run_shield", true);
+        if (target.currentState == STATE.DEAD)
+            ChangeState(STATE.IDLE);
     }
     protected virtual async UniTask SkillAsync()
     {
-
+        if (target.currentState == STATE.DEAD)
+            ChangeState(STATE.IDLE);
     }
     protected virtual async UniTask DeadAsync()
     {
-        spineAnim.AnimationState.SetAnimation(0, "dead", true);
+        spineAnim.AnimationState.SetAnimation(0, "dead", false);
     }
 
     private void AttackEvent(TrackEntry track, Spine.Event e)
@@ -108,8 +118,8 @@ public abstract class Unit : MonoBehaviour
         {
             var proj = ObjectPool.instance.GetPoolingItem("Sword") as Pooling_Projectile;
             proj.Init(GetProjData);
-            proj.transform.position = muzzle.position;
-            proj.ThrowProjectile(target.position);
+            proj.rigidBody.position = muzzle.position;
+            proj.ThrowProjectile(target.hitPoint.position);
         }
     }
 
@@ -118,12 +128,16 @@ public abstract class Unit : MonoBehaviour
         var projData = new PoolingProjectileData();
         projData.name = "Sword";
         projData.speed = 6f;
-        projData.damage = this is Player ? COMMON.unitSo.playerData.atk : COMMON.unitSo.enemyData.atk;
+        projData.damage = data.unitData.atk;
+        projData.unitType = data.unitType;
         return projData;
     }
 
     public void RightMove()
     {
+        if (currentState == STATE.DEAD)
+            return;
+
         transform.localScale = Vector3.one;
         rigidBody.position += Vector2.right * unitSpeed * Time.deltaTime;
         if (transform.position.x >= maxX)
@@ -132,12 +146,25 @@ public abstract class Unit : MonoBehaviour
 
     public void LeftMove()
     {
+        if (currentState == STATE.DEAD)
+            return;
+
         transform.localScale = new Vector3(-1, 1, 1);
         rigidBody.position += Vector2.left * unitSpeed * Time.deltaTime;
         if (transform.position.x <= minX)
             leftLimitAction?.Invoke();
     }
 
+    public void GetDamage(int damage)
+    {
+        data.unitData.hp -= damage;
+        if (data.unitData.hp <= 0)
+            ChangeState(STATE.DEAD);
+
+        GameEventHandler.PostNotification(GameEventType.HP_REFRESH, this, data.unitData.hp);
+    }
+
+    public Define.UnitType GetUnitType() => data.unitType;
     protected void SetRightLimitMoveAction(UnityAction act) => rightLimitAction = act;
     protected void SetLeftLimitMoveAction(UnityAction act) => leftLimitAction = act;
 }

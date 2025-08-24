@@ -10,6 +10,8 @@ public class Enemy : Unit
     protected override void Start()
     {
         base.Start();
+        data = new COMMON.UserData(Define.UnitType.Enemy);
+
         spineAnim.AnimationState.Complete += delegate
         {
             var rnd = Random.Range(0f, 1f);

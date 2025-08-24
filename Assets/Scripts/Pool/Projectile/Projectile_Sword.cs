@@ -9,29 +9,29 @@ public class Projectile_Sword : Pooling_Projectile
     private Vector3 startPos;
     private CancellationTokenSource throwCts;
 
-    public override void ThrowProjectile(Vector3 targetPos)
+    public override void ThrowProjectile(Vector2 targetPos)
     {
         base.ThrowProjectile(targetPos);
-        startPos = transform.position;
+        startPos = rigidBody.position;
         ThrowProjectileAsync(targetPos).Forget();
     }
 
-    private async UniTask ThrowProjectileAsync(Vector3 targetPos)
+    private async UniTask ThrowProjectileAsync(Vector2 targetPos)
     {
         throwCts = new CancellationTokenSource();
         var startX = startPos.x;
         var targetX = targetPos.x;
         var mag = targetX - startX;
-        var nextPos = Vector3.zero;
+        var nextPos = Vector2.zero;
         while (nextPos != targetPos)
         {
-            var nextX = Mathf.MoveTowards(transform.position.x, targetX, projectileData.speed * Time.deltaTime);
+            var nextX = Mathf.MoveTowards(rigidBody.position.x, targetX, projectileData.speed * Time.deltaTime);
             var height = Mathf.Lerp(startPos.y, targetPos.y, (nextX - startX) / mag);
             var arc = targetHeight * (nextX - startX) * (nextX - targetX) / (-0.25f * Mathf.Pow(mag, 2));
-            nextPos = new Vector3(nextX, height + arc, transform.position.z);
+            nextPos = new Vector2(nextX, height + arc);
 
-            transform.rotation = LookAt(nextPos - transform.position);
-            transform.position = nextPos;
+            transform.rotation = LookAt(nextPos - rigidBody.position);
+            rigidBody.position = nextPos;
 
             await UniTask.Yield(PlayerLoopTiming.FixedUpdate, cancellationToken: throwCts.Token);
         }

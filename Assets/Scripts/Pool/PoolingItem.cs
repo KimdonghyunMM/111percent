@@ -10,6 +10,16 @@ public class PoolingItem : MonoBehaviour
 {
     public string key;
 
+    protected virtual void Awake()
+    {
+
+    }
+
+    protected virtual void Start()
+    {
+
+    }
+
     public virtual void Init(PoolingItemData itemData)
     {
         key = itemData.name;

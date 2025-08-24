@@ -5,4 +5,11 @@ public class Define
         public static readonly string PREFAB = "Prefabs/ItemPool";
         public static readonly string SCRIPTABLE_OBJECT = "Prefabs/ScriptableObject";
     }
+
+
+    public enum UnitType
+    {
+        Player,
+        Enemy
+    }
 }
