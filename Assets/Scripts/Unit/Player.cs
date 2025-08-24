@@ -8,8 +8,8 @@ public class Player : Unit
 {
     protected override void Start()
     {
-        base.Start();
         data = new COMMON.UserData(Define.UnitType.Player);
+        base.Start();
 
         SetLeftLimitMoveAction(() => rigidBody.position = Vector2.right * minX);
         SetRightLimitMoveAction(() => rigidBody.position = Vector2.right * maxX);

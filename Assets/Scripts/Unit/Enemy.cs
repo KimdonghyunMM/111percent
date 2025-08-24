@@ -9,8 +9,8 @@ public class Enemy : Unit
 
     protected override void Start()
     {
-        base.Start();
         data = new COMMON.UserData(Define.UnitType.Enemy);
+        base.Start();
 
         spineAnim.AnimationState.Complete += delegate
         {

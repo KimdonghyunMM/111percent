@@ -9,8 +9,8 @@ public class PoolingProjectileData : PoolingItemData
 
 public class Pooling_Projectile : PoolingItem
 {
-    public Rigidbody2D rigidBody;
-    public PoolingProjectileData projectileData;
+    [HideInInspector] public Rigidbody2D rigidBody;
+    protected PoolingProjectileData projectileData;
 
     protected override void Awake()
     {

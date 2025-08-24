@@ -6,11 +6,12 @@ using UnityEngine;
 public enum GameEventType
 {
     HP_REFRESH,
+    HP_INIT,
 }
 
 public interface IEventListener
 {
-    void OnEvent(GameEventType eType, Component sender, object param = null);
+    void OnEvent(GameEventType eType, Component sender, params object[] args);
 }
 
 public class GameEventHandler
@@ -30,7 +31,7 @@ public class GameEventHandler
         listeners.Add(eType, listenerList);
     }
 
-    public static void PostNotification(GameEventType eType, Component sender, object param = null)
+    public static void PostNotification(GameEventType eType, Component sender, params object[] param)
     {
         if (!listeners.TryGetValue(eType, out var listenList))
             return;

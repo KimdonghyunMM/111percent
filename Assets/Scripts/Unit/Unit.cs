@@ -7,6 +7,7 @@ using Spine.Unity;
 using static UnityEngine.GraphicsBuffer;
 using UnityEngine.Events;
 using Unity.VisualScripting;
+using System.Collections.Generic;
 
 public enum STATE
 {
@@ -30,7 +31,8 @@ public abstract class Unit : MonoBehaviour
     protected Rigidbody2D rigidBody;
     protected float minX;
     protected float maxX;
-    protected CancellationTokenSource stateCts;
+    protected CancellationTokenSource stateCts, buffCts;
+    protected List<Buff> buffList = new List<Buff>();
 
     public UnityAction leftLimitAction, rightLimitAction;
     public STATE currentState => stateProperty.Value;
@@ -49,6 +51,8 @@ public abstract class Unit : MonoBehaviour
     {
         stateProperty.TakeUntilDestroy(this).Subscribe(StateChangeCallBack);
         spineAnim.state.Event += AttackEvent;
+
+        GameEventHandler.PostNotification(GameEventType.HP_INIT, this, GetUnitType(), data.unitData.hp);
     }
 
     public void ChangeState(STATE state)
@@ -155,13 +159,78 @@ public abstract class Unit : MonoBehaviour
             leftLimitAction?.Invoke();
     }
 
-    public void GetDamage(int damage)
+    public void GetDamage(int value, Define.DamageType damageType = Define.DamageType.Damage)
     {
-        data.unitData.hp -= damage;
+        switch (damageType)
+        {
+            case Define.DamageType.Damage:
+                data.unitData.hp -= value;
+                break;
+            case Define.DamageType.Heal:
+                data.unitData.hp += value;
+                break;
+        }
+
         if (data.unitData.hp <= 0)
             ChangeState(STATE.DEAD);
 
-        GameEventHandler.PostNotification(GameEventType.HP_REFRESH, this, data.unitData.hp);
+        HPChangeText(damageType, value);
+
+        GameEventHandler.PostNotification(GameEventType.HP_REFRESH, this, GetUnitType(), data.unitData.hp);
+    }
+
+    private void HPChangeText(Define.DamageType type, int value)
+    {
+        var textObj = ObjectPool.instance.GetPoolingItem("DamageText") as Pooling_Text;
+        var textData = new PoolingTextData();
+        textData.damageType = type;
+        textData.value = value;
+        textObj.Init(textData);
+        textObj.transform.position = rigidBody.position + Vector2.up;
+        textObj.Play();
+    }
+
+    private async UniTask DOBuff(Buff buff)
+    {
+        buffCts = new CancellationTokenSource();
+
+        var timeCount = 0f;
+        var termCount = 0f;
+        while (timeCount <= buff.duration)
+        {
+            var time = Time.deltaTime;
+            timeCount += time;
+            switch (buff.buffType)
+            {
+                case Define.BuffType.DotHeal:
+                case Define.BuffType.DotDamage:
+                    {
+                        termCount += time;
+                        if (termCount >= buff.term)
+                        {
+                            var value = Mathf.RoundToInt(data.unitData.atk * buff.incValue);
+                            if (buff.buffType == Define.BuffType.DotHeal)
+                                GetDamage(value, Define.DamageType.Heal);
+                            else
+                                GetDamage(value);
+
+                            termCount = 0f;
+                        }
+                        break;
+                    }
+                case Define.BuffType.Buff:
+                    break;
+                case Define.BuffType.DeBuff:
+                    break;
+            }
+
+            await UniTask.Delay(0, cancellationToken: buffCts.Token);
+        }
+    }
+
+    public void EquipSkill(int index, string skillName)
+    {
+
     }
 
     public Define.UnitType GetUnitType() => data.unitType;

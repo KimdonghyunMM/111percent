@@ -12,4 +12,24 @@ public class Define
         Player,
         Enemy
     }
+
+    public enum DamageType
+    {
+        Damage,
+        Heal,
+    }
+
+    public enum SkillType
+    {
+        Positive,
+        Negative,
+    }
+
+    public enum BuffType
+    {
+        DotHeal,
+        DotDamage,
+        Buff,
+        DeBuff
+    }
 }
