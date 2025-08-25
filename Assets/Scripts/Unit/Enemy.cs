@@ -18,6 +18,12 @@ public class Enemy : Unit
 
         moveAct = RightMove;
         ChangeState(STATE.MOVE);
+
+        EquipSkill(0, "FireShot");
+        EquipSkill(1, "RainArrow");
+        EquipSkill(2, "Heal");
+
+        AutoSkill().Forget();
     }
 
     protected override async UniTask MoveAsync()
@@ -38,6 +44,13 @@ public class Enemy : Unit
             }
             await UniTask.Yield(PlayerLoopTiming.FixedUpdate, cancellationToken: stateCts.Token);
         }
+    }
+
+    protected override async UniTask SkillAsync()
+    {
+        await base.SkillAsync();
+
+        transform.localScale = new Vector3(-1, 1, 1);
     }
 
     private float RandomRatio() => Random.Range(0.5f, 1f);

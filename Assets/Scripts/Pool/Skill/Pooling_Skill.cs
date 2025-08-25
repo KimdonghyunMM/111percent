@@ -7,7 +7,6 @@ public class PoolingSkillData : PoolingItemData
     public float incValue;
     public float coolTime;
     public int attackCount;
-    public Define.SkillType skillType;
     public Buff buff;
 }
 

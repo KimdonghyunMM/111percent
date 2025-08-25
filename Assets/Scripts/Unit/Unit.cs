@@ -36,6 +36,8 @@ public abstract class Unit : MonoBehaviour
     public Transform muzzle;
     public Transform hitPoint;
 
+    private bool isDuration = false;
+
     protected virtual void Awake()
     {
         unitSpeed = 3f;
@@ -87,6 +89,55 @@ public abstract class Unit : MonoBehaviour
                 await DeadAsync();
                 break;
         }
+    }
+
+    protected virtual async UniTask AutoSkill()
+    {
+        var coolTimeArr = new float[equippedSkills.Length];
+        for (var i = 0; i < coolTimeArr.Length; i++)
+            coolTimeArr[i] = equippedSkills[i].coolTime;
+
+        while (true)
+        {
+            for (var i = 0; i < equippedSkills.Length; i++)
+            {
+                if (equippedSkills[i].name == string.Empty)
+                    continue;
+
+                coolTimeArr[i] += Time.deltaTime;
+
+                if (isDuration)
+                    break;
+
+                if (coolTimeArr[i] >= equippedSkills[i].coolTime)
+                {
+                    SkillDuration();
+
+                    var skill = COMMON.GetSkill(equippedSkills[i].name);
+                    skill.Init(equippedSkills[i]);
+                    SetUseSkill(skill);
+                    ChangeState(STATE.SKILL);
+
+                    coolTimeArr[i] = 0f;
+                }
+            }
+
+            await UniTask.Delay(0);
+        }
+    }
+
+    private void SkillDuration() => SkillDurationAsync().Forget();
+
+    private async UniTask SkillDurationAsync()
+    {
+        isDuration = true;
+        var timeCount = 0f;
+        while (timeCount <= 1f)
+        {
+            timeCount += Time.deltaTime;
+            await UniTask.Delay(0);
+        }
+        isDuration = false;
     }
 
     protected virtual async UniTask IdleAsync()
@@ -182,6 +233,8 @@ public abstract class Unit : MonoBehaviour
 
         GameEventHandler.PostNotification(GameEventType.HP_REFRESH, this, GetUnitType(), data.unitData.hp);
     }
+
+    public void GetDamage(float value, Define.DamageType damageType = Define.DamageType.Damage) => GetDamage((int)value, damageType);
 
     private void HPChangeText(Define.DamageType type, int value)
     {

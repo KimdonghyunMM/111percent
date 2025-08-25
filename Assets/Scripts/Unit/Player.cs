@@ -16,6 +16,7 @@ public class Player : Unit
 
         EquipSkill(0, "FireShot");
         EquipSkill(1, "RainArrow");
+        EquipSkill(2, "Heal");
     }
 
     protected override async UniTask AttackAsync()

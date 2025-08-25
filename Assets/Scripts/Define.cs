@@ -19,12 +19,6 @@ public class Define
         Heal,
     }
 
-    public enum SkillType
-    {
-        Positive,
-        Negative,
-    }
-
     public enum BuffType
     {
         DotHeal,

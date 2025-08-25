@@ -36,6 +36,7 @@ public class UnitHpBar : MonoBehaviour, IEventListener
 
                     hpBar.minValue = 0;
                     hpBar.maxValue = (int)args[1];
+                    hpBar.value = hpBar.maxValue;
                     break;
                 }
         }
