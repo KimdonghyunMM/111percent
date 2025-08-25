@@ -10,10 +10,6 @@ public class UnitHpBar : MonoBehaviour, IEventListener
     private void Awake()
     {
         hpBar = GetComponent<Slider>();
-    }
-
-    private void Start()
-    {
         GameEventHandler.AddListener(GameEventType.HP_REFRESH, this);
         GameEventHandler.AddListener(GameEventType.HP_INIT, this);
     }

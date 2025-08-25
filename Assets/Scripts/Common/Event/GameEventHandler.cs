@@ -7,6 +7,7 @@ public enum GameEventType
 {
     HP_REFRESH,
     HP_INIT,
+    USE_SKILL,
 }
 
 public interface IEventListener

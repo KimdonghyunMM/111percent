@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Spine;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,16 +12,6 @@ public class Enemy : Unit
     {
         data = new COMMON.UserData(Define.UnitType.Enemy);
         base.Start();
-
-        spineAnim.AnimationState.Complete += delegate
-        {
-            var rnd = Random.Range(0f, 1f);
-            if (stateProperty.Value == STATE.ATTACK)
-            {
-                if (rnd >= 0.5f)
-                    ChangeState(STATE.MOVE);
-            }
-        };
 
         SetLeftLimitMoveAction(() => moveAct = RightMove);
         SetRightLimitMoveAction(() => moveAct = LeftMove);
@@ -50,4 +41,16 @@ public class Enemy : Unit
     }
 
     private float RandomRatio() => Random.Range(0.5f, 1f);
+
+    protected override void TrackEntryDelegateMethod(TrackEntry entry)
+    {
+        base.TrackEntryDelegateMethod(entry);
+
+        var rnd = Random.Range(0f, 1f);
+        if (stateProperty.Value == STATE.ATTACK)
+        {
+            if (rnd >= 0.5f)
+                ChangeState(STATE.MOVE);
+        }
+    }
 }

@@ -14,19 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillList:
   - name: FireShot
-    skillName: 
     incValue: 1.2
     coolTime: 5
     attackCount: 1
     skillType: 1
     buff:
-      percent: 0.5
+      percent: 0.2
       incValue: 0.3
       term: 0.75
       duration: 5
       buffType: 1
-  - name: GuideArrow
-    skillName: 
+  - name: RainArrow
     incValue: 0.8
     coolTime: 10
     attackCount: 5
@@ -38,7 +36,6 @@ MonoBehaviour:
       duration: 0
       buffType: 0
   - name: Heal
-    skillName: 
     incValue: 2
     coolTime: 8
     attackCount: 1

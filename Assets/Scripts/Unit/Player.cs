@@ -13,6 +13,9 @@ public class Player : Unit
 
         SetLeftLimitMoveAction(() => rigidBody.position = Vector2.right * minX);
         SetRightLimitMoveAction(() => rigidBody.position = Vector2.right * maxX);
+
+        EquipSkill(0, "FireShot");
+        EquipSkill(1, "RainArrow");
     }
 
     protected override async UniTask AttackAsync()

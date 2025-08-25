@@ -4,10 +4,7 @@ using UniRx;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Spine.Unity;
-using static UnityEngine.GraphicsBuffer;
 using UnityEngine.Events;
-using Unity.VisualScripting;
-using System.Collections.Generic;
 
 public enum STATE
 {
@@ -22,20 +19,21 @@ public abstract class Unit : MonoBehaviour
 {
     [SerializeField] protected SkeletonAnimation spineAnim;
     [SerializeField] protected Unit target;
-    [SerializeField] private Transform muzzle;
     [SerializeField] private BoxCollider2D myFloor;
 
-    protected COMMON.UserData data;
     protected float unitSpeed;
     protected ReactiveProperty<STATE> stateProperty = new ReactiveProperty<STATE>();
     protected Rigidbody2D rigidBody;
     protected float minX;
     protected float maxX;
     protected CancellationTokenSource stateCts, buffCts;
-    protected List<Buff> buffList = new List<Buff>();
+    protected Pooling_Skill useSkill;
 
+    public PoolingSkillData[] equippedSkills = new PoolingSkillData[5];
+    public COMMON.UserData data;
     public UnityAction leftLimitAction, rightLimitAction;
     public STATE currentState => stateProperty.Value;
+    public Transform muzzle;
     public Transform hitPoint;
 
     protected virtual void Awake()
@@ -51,6 +49,7 @@ public abstract class Unit : MonoBehaviour
     {
         stateProperty.TakeUntilDestroy(this).Subscribe(StateChangeCallBack);
         spineAnim.state.Event += AttackEvent;
+        spineAnim.AnimationState.Complete += TrackEntryDelegateMethod;
 
         GameEventHandler.PostNotification(GameEventType.HP_INIT, this, GetUnitType(), data.unitData.hp);
     }
@@ -108,6 +107,7 @@ public abstract class Unit : MonoBehaviour
     }
     protected virtual async UniTask SkillAsync()
     {
+        spineAnim.AnimationState.SetAnimation(0, "shield_attack", false);
         if (target.currentState == STATE.DEAD)
             ChangeState(STATE.IDLE);
     }
@@ -120,10 +120,14 @@ public abstract class Unit : MonoBehaviour
     {
         if (e.Data.Name == "sword_attack")
         {
-            var proj = ObjectPool.instance.GetPoolingItem("Sword") as Pooling_Projectile;
+            var proj = COMMON.GetProjectile("Sword");
             proj.Init(GetProjData);
             proj.rigidBody.position = muzzle.position;
-            proj.ThrowProjectile(target.hitPoint.position);
+            proj.ThrowProjectile(GetTargetPos());
+        }
+        else if (e.Data.Name == "shield_attack")
+        {
+            useSkill.UseSkill(this).Forget();
         }
     }
 
@@ -181,8 +185,10 @@ public abstract class Unit : MonoBehaviour
 
     private void HPChangeText(Define.DamageType type, int value)
     {
-        var textObj = ObjectPool.instance.GetPoolingItem("DamageText") as Pooling_Text;
+        var key = "DamageText";
+        var textObj = ObjectPool.instance.GetPoolingItem(key) as Pooling_Text;
         var textData = new PoolingTextData();
+        textData.name = key;
         textData.damageType = type;
         textData.value = value;
         textObj.Init(textData);
@@ -190,9 +196,16 @@ public abstract class Unit : MonoBehaviour
         textObj.Play();
     }
 
-    private async UniTask DOBuff(Buff buff)
+    public async UniTask DOBuff(Buff buff)
     {
-        buffCts = new CancellationTokenSource();
+        if (buff.percent == 0)
+            return;
+
+        //buffCts = new CancellationTokenSource();
+
+        var rnd = Random.Range(0f, 1f);
+        if (buff.percent > rnd)
+            return;
 
         var timeCount = 0f;
         var termCount = 0f;
@@ -224,16 +237,23 @@ public abstract class Unit : MonoBehaviour
                     break;
             }
 
-            await UniTask.Delay(0, cancellationToken: buffCts.Token);
+            await UniTask.Delay(0/*, cancellationToken: buffCts.Token*/);
         }
     }
 
     public void EquipSkill(int index, string skillName)
     {
-
+        equippedSkills[index] = COMMON.GetSkillData(skillName);
     }
 
+    public Vector2 GetTargetPos() => target.hitPoint.position;
+    public void SetUseSkill(Pooling_Skill skill) => useSkill = skill;
     public Define.UnitType GetUnitType() => data.unitType;
     protected void SetRightLimitMoveAction(UnityAction act) => rightLimitAction = act;
     protected void SetLeftLimitMoveAction(UnityAction act) => leftLimitAction = act;
+    protected virtual void TrackEntryDelegateMethod(TrackEntry entry)
+    {
+        if (stateProperty.Value == STATE.SKILL && entry.Animation.Name == "shield_attack")
+            ChangeState(STATE.ATTACK);
+    }
 }

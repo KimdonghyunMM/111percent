@@ -24,9 +24,22 @@ public class Buff
 public class Pooling_Skill : PoolingItem
 {
     protected PoolingSkillData skillData;
+    protected Unit useUnit;
 
-    public async UniTask UseSkill(Unit useUnit)
+    public override void Init(PoolingItemData itemData)
     {
+        base.Init(itemData);
+        skillData = itemData as PoolingSkillData;
+    }
 
+    public virtual async UniTask UseSkill(Unit useUnit) => this.useUnit = useUnit;
+    protected virtual PoolingProjectileData SetProjectileData()
+    {
+        var projData = new PoolingProjectileData();
+        projData.unitType = useUnit.GetUnitType();
+        projData.damage = Mathf.RoundToInt(useUnit.data.unitData.atk * skillData.incValue);
+        projData.unitType = useUnit.data.unitType;
+        projData.buff = skillData.buff;
+        return projData;
     }
 }
