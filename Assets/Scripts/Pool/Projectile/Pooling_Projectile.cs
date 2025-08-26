@@ -13,6 +13,7 @@ public class PoolingProjectileData : PoolingItemData
 public class Pooling_Projectile : PoolingItem
 {
     [HideInInspector] public Rigidbody2D rigidBody;
+    [SerializeField] private string effectName;
     public PoolingProjectileData projectileData;
 
     protected Vector3 startPos;
@@ -60,12 +61,19 @@ public class Pooling_Projectile : PoolingItem
         else if (collision.gameObject.CompareTag("Floor"))
             Release();
     }
-
+    
     private void CollisionAction(Unit unit)
     {
         unit.GetDamage(projectileData.damage);
         if (projectileData.buff != null)
             unit.DOBuff(projectileData.buff).Forget();
+        var effect = ObjectPool.instance.GetPoolingItem(effectName) as Pooling_Effect;
+        effect.Init(new PoolingItemData()
+        {
+            name = effectName
+        });
+        effect.transform.position = unit.transform.position + Vector3.up * 0.5f;
+        effect.Play();
         Release();
     }
 }

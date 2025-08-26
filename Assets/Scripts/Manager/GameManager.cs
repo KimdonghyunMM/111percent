@@ -11,4 +11,9 @@ public class GameManager : MonoBehaviour
 
         COMMON.Init();
     }
+
+    private void Start()
+    {
+        Application.targetFrameRate = 60;
+    }
 }

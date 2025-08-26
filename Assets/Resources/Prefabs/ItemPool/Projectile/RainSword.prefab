@@ -175,3 +175,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55b70b363c6bd554ab195799e0be65a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  key: 
+  rigidBody: {fileID: 0}
+  effectName: Sword_Hit

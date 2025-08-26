@@ -37,6 +37,7 @@ public abstract class Unit : MonoBehaviour
     public Transform hitPoint;
 
     private bool isDuration = false;
+    private MeshRenderer meshRenderer;
 
     protected virtual void Awake()
     {
@@ -45,6 +46,7 @@ public abstract class Unit : MonoBehaviour
         maxX = myFloor.transform.position.x + myFloor.bounds.size.x * 0.5f;
 
         rigidBody = GetComponent<Rigidbody2D>();
+        meshRenderer = GetComponentInChildren<MeshRenderer>();
     }
 
     protected virtual void Start()
@@ -220,6 +222,7 @@ public abstract class Unit : MonoBehaviour
         {
             case Define.DamageType.Damage:
                 data.unitData.hp -= value;
+                DamageEffect().Forget();
                 break;
             case Define.DamageType.Heal:
                 data.unitData.hp += value;
@@ -235,6 +238,13 @@ public abstract class Unit : MonoBehaviour
     }
 
     public void GetDamage(float value, Define.DamageType damageType = Define.DamageType.Damage) => GetDamage((int)value, damageType);
+
+    public async UniTask DamageEffect()
+    {
+        spineAnim.skeleton.SetColor(Color.red);
+        await UniTask.Delay(50);
+        spineAnim.skeleton.SetColor(Color.white);
+    }
 
     private void HPChangeText(Define.DamageType type, int value)
     {

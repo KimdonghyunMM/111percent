@@ -2,15 +2,12 @@ using UnityEngine;
 
 public class Pooling_Effect : PoolingItem
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    [SerializeField] private ParticleSystem effect;
 
-    // Update is called once per frame
-    void Update()
+    public void Play() => effect.Play();
+
+    private void OnParticleSystemStopped()
     {
-        
+        Release();
     }
 }
